@@ -1,37 +1,45 @@
 pipeline {
+    agent any
 
-agent any
+    stages {
 
-stages {
-
-    stage('Checkout') { steps { checkout scm } }
-
-    stage('Build') { steps { sh 'mvn clean package' } }
-
-    stage('Deploy') {
-
-        steps {
-
-            sh '''
-
-                mkdir -p "$WORKSPACE/deployment"
-
-                cp target/*.jar "$WORKSPACE/deployment/app.jar"
-
-            '''
-
+        stage('Checkout Source Code') {
+            steps {
+                checkout scm
+                echo 'Source code retrieved from GitHub'
+            }
         }
 
-    }
-
-    stage('Execute') {
-
-        steps {
-
-            sh 'printf "sum\\n" | java -jar "$WORKSPACE/deployment/app.jar"'
-
+        stage('Compile Java Program') {
+            steps {
+                sh '''
+                    echo "Compiling Java Program..."
+                    mkdir -p build
+                    javac -d build src/Main.java
+                '''
+            }
         }
 
+        stage('Execute Java Program') {
+            steps {
+                sh '''
+                    echo "Executing Java Program..."
+                    printf "sum\\n" | java -cp build Main
+                '''
+            }
+        }
     }
 
+    post {
+        success {
+            echo 'Pipeline executed successfully!'
+        }
+
+        failure {
+            echo 'Pipeline execution failed!'
+        }
+    }
 }
+
+
+
