@@ -1,0 +1,37 @@
+pipeline {
+
+agent any
+
+stages {
+
+    stage('Checkout') { steps { checkout scm } }
+
+    stage('Build') { steps { sh 'mvn clean package' } }
+
+    stage('Deploy') {
+
+        steps {
+
+            sh '''
+
+                mkdir -p "$WORKSPACE/deployment"
+
+                cp target/*.jar "$WORKSPACE/deployment/app.jar"
+
+            '''
+
+        }
+
+    }
+
+    stage('Execute') {
+
+        steps {
+
+            sh 'printf "sum\\n" | java -jar "$WORKSPACE/deployment/app.jar"'
+
+        }
+
+    }
+
+}
